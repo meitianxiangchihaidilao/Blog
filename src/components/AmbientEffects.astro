@@ -1,0 +1,235 @@
+---
+import { url } from "../utils/url-utils";
+
+const audioSrc = url("/audio/557982908.mp3");
+const iconSrcs = Array.from({ length: 10 }, (_, i) => url(`/icon/${i + 1}.png`));
+---
+
+<div id="ambient-root" data-icon-srcs={JSON.stringify(iconSrcs)}>
+	<canvas id="bgm-wave-canvas" aria-hidden="true"></canvas>
+	<div id="click-burst-layer" aria-hidden="true"></div>
+	<audio id="bgm-audio" src={audioSrc} loop preload="metadata" playsinline></audio>
+	<button
+		id="bgm-toggle"
+		class="bgm-toggle"
+		type="button"
+		aria-pressed="false"
+		aria-label="播放背景音乐"
+		title="背景音乐"
+	>
+		<svg class="bgm-note" viewBox="0 0 24 24" aria-hidden="true">
+			<path
+				fill="currentColor"
+				d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6Z"></path>
+		</svg>
+		<span class="bgm-eq" aria-hidden="true">
+			<i></i><i></i><i></i><i></i>
+		</span>
+	</button>
+</div>
+
+<script>
+	import { initAmbientEffects } from "../scripts/ambient-effects";
+	initAmbientEffects();
+</script>
+
+<style>
+	#bgm-audio {
+		display: none;
+	}
+
+	#bgm-wave-canvas {
+		position: fixed;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+		z-index: 45;
+	}
+
+	#click-burst-layer {
+		position: fixed;
+		inset: 0;
+		pointer-events: none;
+		z-index: 9999;
+		overflow: hidden;
+	}
+
+	#click-burst-layer :global(.click-burst-sticker) {
+		position: absolute;
+		object-fit: contain;
+		pointer-events: none;
+		user-select: none;
+		will-change: transform, opacity;
+		filter: drop-shadow(0 2px 4px rgba(236, 72, 153, 0.18));
+	}
+
+	#click-burst-layer :global(.click-burst-sparkle) {
+		position: absolute;
+		pointer-events: none;
+		will-change: transform, opacity;
+	}
+
+	#click-burst-layer :global(.click-burst-sparkle.is-dot) {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: #f9a8d4;
+	}
+
+	#click-burst-layer :global(.click-burst-sparkle.is-diamond) {
+		width: 7px;
+		height: 7px;
+		background: #fb7185;
+		clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+	}
+
+	#click-burst-layer :global(.click-burst-sparkle.is-plus) {
+		width: 8px;
+		height: 8px;
+		background: #f472b6;
+		clip-path: polygon(
+			35% 0,
+			65% 0,
+			65% 35%,
+			100% 35%,
+			100% 65%,
+			65% 65%,
+			65% 100%,
+			35% 100%,
+			35% 65%,
+			0 65%,
+			0 35%,
+			35% 35%
+		);
+	}
+
+	#click-burst-layer :global(.click-burst-ring) {
+		position: absolute;
+		width: 14px;
+		height: 14px;
+		border: 1.5px solid rgba(244, 114, 182, 0.65);
+		border-radius: 50%;
+		pointer-events: none;
+	}
+
+	.bgm-toggle {
+		position: fixed;
+		left: 1.15rem;
+		bottom: 1.35rem;
+		z-index: 60;
+		width: 3.35rem;
+		height: 3.35rem;
+		border: none;
+		border-radius: 1rem;
+		background: var(--card-bg);
+		color: #f472b6;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 6px 18px rgba(236, 72, 153, 0.12);
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+
+	.bgm-toggle:hover {
+		transform: scale(1.06);
+		box-shadow: 0 8px 22px rgba(236, 72, 153, 0.2);
+	}
+
+	.bgm-toggle:focus {
+		outline: none;
+	}
+
+	.bgm-toggle:focus-visible {
+		outline: 2px solid rgba(244, 114, 182, 0.7);
+		outline-offset: 2px;
+	}
+
+	.bgm-toggle:active {
+		transform: scale(0.94);
+	}
+
+	.bgm-toggle.is-playing {
+		box-shadow:
+			0 0 0 1px rgba(244, 114, 182, 0.28),
+			0 8px 20px rgba(236, 72, 153, 0.16);
+	}
+
+	.bgm-note {
+		width: 1.35rem;
+		height: 1.35rem;
+	}
+
+	.bgm-eq {
+		display: none;
+		align-items: flex-end;
+		gap: 3px;
+		height: 16px;
+	}
+
+	.bgm-toggle.is-playing .bgm-note {
+		display: none;
+	}
+
+	.bgm-toggle.is-playing .bgm-eq {
+		display: flex;
+	}
+
+	.bgm-eq i {
+		display: block;
+		width: 2.5px;
+		height: 8px;
+		border-radius: 2px;
+		background: #f472b6;
+		transform-origin: bottom;
+		animation: bgm-eq 0.88s ease-in-out infinite;
+	}
+
+	.bgm-eq i:nth-child(1) {
+		animation-delay: 0s;
+		height: 7px;
+	}
+	.bgm-eq i:nth-child(2) {
+		animation-delay: 0.14s;
+		height: 14px;
+	}
+	.bgm-eq i:nth-child(3) {
+		animation-delay: 0.28s;
+		height: 10px;
+	}
+	.bgm-eq i:nth-child(4) {
+		animation-delay: 0.42s;
+		height: 12px;
+	}
+
+	@keyframes bgm-eq {
+		0%,
+		100% {
+			transform: scaleY(0.4);
+		}
+		50% {
+			transform: scaleY(1);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.bgm-toggle {
+			width: 2.9rem;
+			height: 2.9rem;
+			left: 0.85rem;
+			bottom: 1rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.bgm-eq i {
+			animation: none;
+		}
+		#bgm-wave-canvas {
+			display: none;
+		}
+	}
+</style>
