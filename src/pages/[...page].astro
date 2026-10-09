@@ -18,6 +18,14 @@ const len = page.data.length;
 ---
 
 <MainGridLayout>
-    <PostPage page={page}></PostPage>
-    <Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
+    <div class="flex flex-col flex-1">
+        <PostPage page={page}></PostPage>
+        {page.lastPage > 1 && (
+            <Pagination
+                class="mx-auto onload-animation mt-auto mb-2"
+                page={page}
+                style={`animation-delay: calc(var(--content-delay) + ${len * 50}ms)`}
+            />
+        )}
+    </div>
 </MainGridLayout>

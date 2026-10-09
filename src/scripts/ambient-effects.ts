@@ -204,7 +204,7 @@ export function initAmbientEffects() {
 			.finished.then(() => ring.remove())
 			.catch(() => ring.remove());
 
-		const stickerCount = 6 + Math.floor(Math.random() * 3);
+		const stickerCount = 3 + Math.floor(Math.random() * 3);
 		const picked = pickIcons(iconSrcs, stickerCount);
 		for (let i = 0; i < picked.length; i++) {
 			const src = picked[i];
@@ -214,7 +214,7 @@ export function initAmbientEffects() {
 			el.alt = "";
 			el.draggable = false;
 			el.className = "click-burst-sticker";
-			const size = 34 + Math.round(Math.random() * 16);
+			const size = 25 + Math.round(Math.random() * 15);
 			el.style.left = `${x}px`;
 			el.style.top = `${y}px`;
 			el.style.width = `${size}px`;

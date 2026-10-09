@@ -39,6 +39,9 @@ const hasBannerLink = !!siteConfig.banner.credit.url;
 const mainPanelTop = siteConfig.banner.enable
 	? `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem)`
 	: "5.5rem";
+const contentMinHeight = siteConfig.banner.enable
+	? `calc(100vh - (${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem))`
+	: "calc(100vh - 5.5rem)";
 ---
 
 <Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle}>
@@ -60,11 +63,10 @@ const mainPanelTop = siteConfig.banner.enable
 </div>}
 
 <!-- Main content -->
-<div class="absolute w-full z-30 pointer-events-none" style={`top: ${mainPanelTop}`}>
+<div class="absolute w-full z-30 pointer-events-none" style={`top: ${mainPanelTop}; min-height: ${contentMinHeight}`}>
     <!-- The pointer-events-none here prevent blocking the click event of the TOC -->
-    <div class="relative max-w-[var(--page-width)] mx-auto pointer-events-auto">
-        <div id="main-grid" class="transition duration-700 w-full left-0 right-0 grid grid-cols-[17.5rem_auto] grid-rows-[auto_1fr_auto] lg:grid-rows-[auto]
-    mx-auto gap-4 px-0 md:px-4"
+    <div class="relative max-w-[var(--page-width)] mx-auto pointer-events-auto flex flex-col" style={`min-height: ${contentMinHeight}`}>
+        <div id="main-grid" class="transition duration-700 w-full flex-1 grid grid-cols-1 lg:grid-cols-[17.5rem_minmax(0,1fr)] mx-auto gap-4 px-0 md:px-4"
         >
             <!-- Banner image credit -->
             {hasBannerCredit && <a href={siteConfig.banner.credit.url} id="banner-credit" target="_blank" rel="noopener" aria-label="Visit image source"
@@ -80,22 +82,19 @@ const mainPanelTop = siteConfig.banner.enable
             </a>}
 
 
-            <SideBar class="mb-4 row-start-2 row-end-3 col-span-2 lg:row-start-1 lg:row-end-2 lg:col-span-1 lg:max-w-[17.5rem] onload-animation" headings={headings}></SideBar>
+            <SideBar class="mb-4 order-2 lg:order-none lg:max-w-[17.5rem] onload-animation" headings={headings}></SideBar>
 
-            <main id="swup-container" class="transition-swup-fade col-span-2 lg:col-span-1 overflow-hidden">
-                <div id="content-wrapper" class="onload-animation">
+            <main id="swup-container" class="transition-swup-fade order-1 lg:order-none overflow-hidden flex flex-col min-h-0">
+                <div id="content-wrapper" class="onload-animation flex-1 flex flex-col min-h-0">
                     <!-- the overflow-hidden here prevent long text break the layout-->
                     <!-- make id different from windows.swup global property -->
                     <slot></slot>
-                    <div class="footer col-span-2 onload-animation hidden lg:block">
-                        <Footer></Footer>
-                    </div>
                 </div>
             </main>
+        </div>
 
-            <div class="footer col-span-2 onload-animation block lg:hidden">
-                <Footer></Footer>
-            </div>
+        <div class="footer onload-animation mt-auto px-0 md:px-4">
+            <Footer></Footer>
         </div>
 
         <BackToTop></BackToTop>
