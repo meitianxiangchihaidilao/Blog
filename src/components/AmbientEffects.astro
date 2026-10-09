@@ -8,7 +8,42 @@ const iconSrcs = Array.from({ length: 10 }, (_, i) => url(`/icon/${i + 1}.png`))
 <div id="ambient-root" data-icon-srcs={JSON.stringify(iconSrcs)}>
 	<canvas id="bgm-wave-canvas" aria-hidden="true"></canvas>
 	<div id="click-burst-layer" aria-hidden="true"></div>
-	<audio id="bgm-audio" src={audioSrc} loop preload="metadata" playsinline></audio>
+	<audio
+		id="bgm-audio"
+		src={audioSrc}
+		loop
+		autoplay
+		preload="auto"
+		playsinline
+	></audio>
+	<script is:inline>
+		(() => {
+			const audio = document.getElementById("bgm-audio");
+			if (!(audio instanceof HTMLAudioElement)) return;
+			if (localStorage.getItem("bgm-paused") === "1") {
+				audio.removeAttribute("autoplay");
+				audio.pause();
+				return;
+			}
+			audio.volume = 0.38;
+			const kick = () => {
+				if (localStorage.getItem("bgm-paused") === "1" || !audio.paused) return;
+				audio.play().catch(() => {});
+			};
+			kick();
+			const events = [
+				"pointerdown",
+				"pointermove",
+				"mousemove",
+				"touchstart",
+				"keydown",
+				"wheel",
+			];
+			for (const ev of events) {
+				window.addEventListener(ev, kick, { passive: true });
+			}
+		})();
+	</script>
 	<button
 		id="bgm-toggle"
 		class="bgm-toggle"
@@ -35,7 +70,11 @@ const iconSrcs = Array.from({ length: 10 }, (_, i) => url(`/icon/${i + 1}.png`))
 
 <style>
 	#bgm-audio {
-		display: none;
+		position: absolute;
+		width: 0;
+		height: 0;
+		opacity: 0;
+		pointer-events: none;
 	}
 
 	#bgm-wave-canvas {
@@ -61,7 +100,7 @@ const iconSrcs = Array.from({ length: 10 }, (_, i) => url(`/icon/${i + 1}.png`))
 		pointer-events: none;
 		user-select: none;
 		will-change: transform, opacity;
-		filter: drop-shadow(0 2px 4px rgba(236, 72, 153, 0.18));
+		filter: drop-shadow(0 3px 6px rgba(236, 72, 153, 0.22));
 	}
 
 	#click-burst-layer :global(.click-burst-sparkle) {
@@ -71,22 +110,22 @@ const iconSrcs = Array.from({ length: 10 }, (_, i) => url(`/icon/${i + 1}.png`))
 	}
 
 	#click-burst-layer :global(.click-burst-sparkle.is-dot) {
-		width: 5px;
-		height: 5px;
+		width: 7px;
+		height: 7px;
 		border-radius: 50%;
 		background: #f9a8d4;
 	}
 
 	#click-burst-layer :global(.click-burst-sparkle.is-diamond) {
-		width: 7px;
-		height: 7px;
+		width: 9px;
+		height: 9px;
 		background: #fb7185;
 		clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 	}
 
 	#click-burst-layer :global(.click-burst-sparkle.is-plus) {
-		width: 8px;
-		height: 8px;
+		width: 11px;
+		height: 11px;
 		background: #f472b6;
 		clip-path: polygon(
 			35% 0,
@@ -106,8 +145,8 @@ const iconSrcs = Array.from({ length: 10 }, (_, i) => url(`/icon/${i + 1}.png`))
 
 	#click-burst-layer :global(.click-burst-ring) {
 		position: absolute;
-		width: 14px;
-		height: 14px;
+		width: 20px;
+		height: 20px;
 		border: 1.5px solid rgba(244, 114, 182, 0.65);
 		border-radius: 50%;
 		pointer-events: none;

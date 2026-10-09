@@ -43,6 +43,8 @@ export function initAmbientEffects() {
 	const ctx = canvas.getContext("2d");
 	if (!ctx) return;
 
+	let detachAutoplay = () => {};
+
 	const reduced = () =>
 		window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -107,6 +109,7 @@ export function initAmbientEffects() {
 		audio.pause();
 		localStorage.setItem(STORAGE_KEY, "1");
 		setPlaying(false);
+		detachAutoplay();
 	}
 
 	function draw(ts: number) {
@@ -120,28 +123,29 @@ export function initAmbientEffects() {
 		const cy = rect.top + rect.height / 2;
 		const energy = sampleEnergy();
 		const pink = isDark() ? "249, 168, 212" : "236, 72, 153";
-		const glowR = 78 + energy * 22;
+		const glowR = 118 + energy * 36;
 
-		const glow = ctx.createRadialGradient(cx, cy, 10, cx, cy, glowR);
-		glow.addColorStop(0, `rgba(${pink}, ${0.09 * fade + energy * 0.05 * fade})`);
+		const glow = ctx.createRadialGradient(cx, cy, 12, cx, cy, glowR);
+		glow.addColorStop(0, `rgba(${pink}, ${0.1 * fade + energy * 0.06 * fade})`);
 		glow.addColorStop(1, `rgba(${pink}, 0)`);
 		ctx.fillStyle = glow;
 		ctx.beginPath();
 		ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
 		ctx.fill();
 
-		for (let i = 0; i < 3; i++) {
-			const baseR = 30 + i * 15 + energy * 8;
-			const amp = 2.2 + energy * 4.5 + i * 0.4;
-			const alpha = (0.22 - i * 0.05) * (0.4 + energy * 0.6) * fade;
+		for (let i = 0; i < 4; i++) {
+			const baseR = 38 + i * 20 + energy * 16;
+			const amp = 3.8 + energy * 7 + i * 0.55;
+			const alpha = (0.24 - i * 0.04) * (0.42 + energy * 0.58) * fade;
 			ctx.beginPath();
 			ctx.strokeStyle = `rgba(${pink}, ${alpha})`;
-			ctx.lineWidth = i === 0 ? 1.35 : 1.05;
-			const ticks = 90;
+			ctx.lineWidth = i === 0 ? 1.55 : 1.15;
+			const ticks = 96;
 			for (let k = 0; k <= ticks; k++) {
 				const a = (k / ticks) * Math.PI * 2;
 				const wobble =
-					Math.sin(a * (7 + i) + ts * 0.0024 + i * 1.2) * amp;
+					Math.sin(a * (6 + i) + ts * 0.0034 + i * 1.1) * amp +
+					Math.sin(a * 3.2 - ts * 0.0022 + i * 0.6) * amp * 0.38;
 				const r = baseR + wobble;
 				const x = cx + Math.cos(a) * r;
 				const y = cy + Math.sin(a) * r;
@@ -176,7 +180,7 @@ export function initAmbientEffects() {
 
 	function burst(x: number, y: number) {
 		if (reduced() || iconSrcs.length === 0) return;
-		while (layer.childElementCount > 36) {
+		while (layer.childElementCount > 64) {
 			layer.firstElementChild?.remove();
 		}
 
@@ -188,27 +192,29 @@ export function initAmbientEffects() {
 		ring
 			.animate(
 				[
-					{ transform: "translate(-50%, -50%) scale(0.45)", opacity: 0.7 },
-					{ transform: "translate(-50%, -50%) scale(1.8)", opacity: 0 },
+					{ transform: "translate(-50%, -50%) scale(0.4)", opacity: 0.75 },
+					{ transform: "translate(-50%, -50%) scale(2.35)", opacity: 0 },
 				],
 				{
-					duration: 420,
-					easing: "cubic-bezier(0.16, 0.84, 0.32, 1)",
+					duration: 920,
+					easing: "cubic-bezier(0.16, 0.78, 0.28, 1)",
 					fill: "forwards",
 				},
 			)
 			.finished.then(() => ring.remove())
 			.catch(() => ring.remove());
 
-		const stickerCount = 4 + Math.floor(Math.random() * 3);
+		const stickerCount = 6 + Math.floor(Math.random() * 3);
 		const picked = pickIcons(iconSrcs, stickerCount);
 		for (let i = 0; i < picked.length; i++) {
+			const src = picked[i];
+			if (!src) continue;
 			const el = document.createElement("img");
-			el.src = picked[i];
+			el.src = src;
 			el.alt = "";
 			el.draggable = false;
 			el.className = "click-burst-sticker";
-			const size = 22 + Math.round(Math.random() * 10);
+			const size = 34 + Math.round(Math.random() * 16);
 			el.style.left = `${x}px`;
 			el.style.top = `${y}px`;
 			el.style.width = `${size}px`;
@@ -216,37 +222,52 @@ export function initAmbientEffects() {
 			layer.appendChild(el);
 
 			const angle =
-				(Math.PI * 2 * i) / picked.length + (Math.random() - 0.5) * 0.7;
-			const dist = 34 + Math.random() * 32;
-			const dx = Math.cos(angle) * dist;
-			const dy = Math.sin(angle) * dist - 10;
-			const rot = (Math.random() - 0.5) * 80;
-			const dur = 520 + Math.random() * 200;
+				(Math.PI * 2 * i) / picked.length + (Math.random() - 0.5) * 0.85;
+			const dist = 56 + Math.random() * 46;
+			const spin = (Math.random() - 0.5) * 150;
+			const drift = (Math.random() - 0.5) * 18;
+			const dx = Math.cos(angle) * dist + drift;
+			const dy = Math.sin(angle) * dist - 16;
+			const dur = 1480 + Math.random() * 420;
+			const delay = Math.random() * 70;
 			el.animate(
 				[
 					{
-						transform: "translate(-50%, -50%) scale(0.18) rotate(0deg)",
+						transform: "translate(-50%, -50%) scale(0.16) rotate(0deg)",
 						opacity: 1,
 					},
 					{
-						transform: `translate(calc(-50% + ${dx * 0.42}px), calc(-50% + ${dy * 0.42}px)) scale(1.12) rotate(${rot * 0.35}deg)`,
+						transform: `translate(calc(-50% + ${dx * 0.38}px), calc(-50% + ${dy * 0.38}px)) scale(1.28) rotate(${spin * 0.35}deg)`,
 						opacity: 1,
-						offset: 0.2,
+						offset: 0.16,
 					},
 					{
-						transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.72) rotate(${rot}deg)`,
+						transform: `translate(calc(-50% + ${dx * 0.82}px), calc(-50% + ${dy * 0.78}px)) scale(1.04) rotate(${spin * 0.75}deg)`,
+						opacity: 1,
+						offset: 0.42,
+					},
+					{
+						transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy - 8}px)) scale(0.96) rotate(${spin}deg)`,
+						opacity: 1,
+						offset: 0.72,
+					},
+					{
+						transform: `translate(calc(-50% + ${dx * 1.08}px), calc(-50% + ${dy - 22}px)) scale(0.82) rotate(${spin * 1.12}deg)`,
 						opacity: 0,
 					},
 				],
 				{
 					duration: dur,
-					easing: "cubic-bezier(0.14, 0.86, 0.3, 1)",
+					delay,
+					easing: "cubic-bezier(0.16, 0.72, 0.22, 1)",
 					fill: "forwards",
 				},
-			).finished.then(() => el.remove()).catch(() => el.remove());
+			)
+				.finished.then(() => el.remove())
+				.catch(() => el.remove());
 		}
 
-		const sparkleCount = 4 + Math.floor(Math.random() * 3);
+		const sparkleCount = 7 + Math.floor(Math.random() * 4);
 		const kinds = ["is-dot", "is-diamond", "is-plus"] as const;
 		for (let i = 0; i < sparkleCount; i++) {
 			const sparkle = document.createElement("span");
@@ -255,22 +276,28 @@ export function initAmbientEffects() {
 			sparkle.style.top = `${y}px`;
 			layer.appendChild(sparkle);
 			const angle = Math.random() * Math.PI * 2;
-			const dist = 26 + Math.random() * 40;
+			const dist = 42 + Math.random() * 56;
 			const dx = Math.cos(angle) * dist;
-			const dy = Math.sin(angle) * dist - 6;
-			const dur = 430 + Math.random() * 180;
+			const dy = Math.sin(angle) * dist - 12;
+			const dur = 1180 + Math.random() * 360;
 			sparkle
 				.animate(
 					[
-						{ transform: "translate(-50%, -50%) scale(0.4)", opacity: 0.95 },
+						{ transform: "translate(-50%, -50%) scale(0.35)", opacity: 1 },
 						{
-							transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.2)`,
+							transform: `translate(calc(-50% + ${dx * 0.7}px), calc(-50% + ${dy * 0.7}px)) scale(1.05)`,
+							opacity: 1,
+							offset: 0.45,
+						},
+						{
+							transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy - 10}px)) scale(0.35)`,
 							opacity: 0,
 						},
 					],
 					{
 						duration: dur,
-						easing: "cubic-bezier(0.12, 0.82, 0.28, 1)",
+						delay: Math.random() * 80,
+						easing: "cubic-bezier(0.12, 0.78, 0.26, 1)",
 						fill: "forwards",
 					},
 				)
@@ -307,24 +334,58 @@ export function initAmbientEffects() {
 		setPlaying(false);
 	});
 
-	const unlock = (event: PointerEvent) => {
-		document.removeEventListener("pointerdown", unlock);
-		const target = event.target;
-		if (target instanceof Node && toggle.contains(target)) return;
-		if (audio.paused && localStorage.getItem(STORAGE_KEY) !== "1") {
-			play();
+	const unlockEvents = [
+		"pointerdown",
+		"pointermove",
+		"mousemove",
+		"touchstart",
+		"keydown",
+		"wheel",
+	] as const;
+
+	const tryAutoplay = (event?: Event) => {
+		if (localStorage.getItem(STORAGE_KEY) === "1") {
+			detachAutoplay();
+			return;
 		}
+		if (!audio.paused) {
+			detachAutoplay();
+			return;
+		}
+		const target = event?.target;
+		if (target instanceof Node && toggle.contains(target)) return;
+		play();
 	};
-	document.addEventListener("pointerdown", unlock);
+
+	const onStarted = () => {
+		if (!audio.paused) detachAutoplay();
+	};
+
+	detachAutoplay = () => {
+		for (const ev of unlockEvents) {
+			window.removeEventListener(ev, tryAutoplay);
+		}
+		audio.removeEventListener("canplay", tryAutoplay);
+		audio.removeEventListener("play", onStarted);
+	};
+
+	for (const ev of unlockEvents) {
+		window.addEventListener(ev, tryAutoplay, { passive: true });
+	}
+	audio.addEventListener("canplay", tryAutoplay);
+	audio.addEventListener("play", onStarted);
 
 	resizeCanvas();
 	window.addEventListener("resize", resizeCanvas);
 	document.addEventListener("visibilitychange", () => {
 		if (!document.hidden && playing) startLoop();
+		if (!document.hidden) tryAutoplay();
 	});
 
 	if (localStorage.getItem(STORAGE_KEY) !== "1") {
 		play();
+		window.setTimeout(tryAutoplay, 250);
+		window.setTimeout(tryAutoplay, 1200);
 	}
 }
 
