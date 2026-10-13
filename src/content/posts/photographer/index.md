@@ -1,13 +1,13 @@
 \---  
-title: JOIN 字段覆盖加伪造 MIME：Photographer 拿 FLAG  
+title: “JOIN 字段覆盖加伪造 MIME：Photographer 拿 FLAG”  
 published: 2026-10-13  
 description: User::findById 用 JOIN 拉背景图，photo.type 会盖掉 user.type；上传时 MIME 信任客户端。把 type=-1 的图设成背景后，Auth::type() 变成 -1，即可读 /superadmin.php 的 FLAG。  
-tags:  
-\- 代码审计  
-\- PHP  
+tags: [代码审计, PHP, CTF]  
 category: CTF  
 draft: false  
 \---
+
+
 
 :::warning[题目性质]  
 本文是 CTF 题目 **Photographer** 的解题记录，环境为本地靶机，仅用于学习代码审计与权限校验问题。  
