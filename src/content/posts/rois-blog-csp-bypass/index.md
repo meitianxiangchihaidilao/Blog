@@ -1,12 +1,12 @@
-\---  
-title: 属性注入伪造 CSP 绕过 XSS 防护  
-published: 2026-10-12  
-description: "一道 XSS + CSRF 外带 Cookie 的 CTF 题。正文侧被 DOMPurify 和自定义 shield 堵死，但页面头部一处没加引号的属性可以注入 meta 伪造 CSP，把防护脚本直接禁掉。"  
-image: ./image-1.png  
-tags: [代码审计, XSS, CSP]  
-category: CTF  
-draft: false  
-\---
+---
+title: 属性注入伪造 CSP 绕过 XSS 防护
+published: 2026-10-12
+description: "一道 XSS + CSRF 外带 Cookie 的 CTF 题。正文侧被 DOMPurify 和自定义 shield 堵死，但页面头部一处没加引号的属性可以注入 meta 伪造 CSP，把防护脚本直接禁掉。"
+image: ./image-1.png
+tags: [代码审计, XSS, CSP]
+category: CTF
+draft: false
+---
 
 :::warning[题目性质]  
 本文是 CTF 题目 **ROIS Blog** 的解题记录，环境为本地靶机，仅用于学习 XSS、CSP 与 Cookie 外带的原理。  
