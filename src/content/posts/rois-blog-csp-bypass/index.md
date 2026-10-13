@@ -1,14 +1,14 @@
----
-title: 属性注入伪造 CSP 绕过 XSS 防护
-published: 2026-10-12
-description: "一道 XSS + CSRF 外带 Cookie 的 CTF 题。正文侧被 DOMPurify 和自定义 shield 堵死，但页面头部一处没加引号的属性可以注入 <meta> 伪造 CSP，把防护脚本直接禁掉。"
-image: ./image-1.png
-tags: [代码审计, XSS, CSP]
-category: CTF
-draft: false
----
+\---  
+title: 属性注入伪造 CSP 绕过 XSS 防护  
+published: 2026-10-12  
+description: 一道 XSS + CSRF 外带 Cookie 的 CTF 题。正文侧被 DOMPurify 和自定义 shield 堵死，但页面头部一处没加引号的属性可以注入 <meta> 伪造 CSP，把防护脚本直接禁掉。  
+image: ./image-1.png  
+tags: [代码审计, XSS, CSP]  
+category: CTF  
+draft: false  
+\---
 
-:::warning[题目性质]
+:::warning[题目性质]  
 本文是 CTF 题目 **ROIS Blog** 的解题记录，环境为本地靶机，仅用于学习 XSS、CSP 与 Cookie 外带的原理。
 
 :::
@@ -29,7 +29,7 @@ draft: false
 
 ![My Articles 面板，暂无文章](image-2.png)
 
-:::note[这里有一个坑]
+:::note[这里有一个坑]  
 发布文章时会间歇性地返回 `Article not found`，多点几次 / 重发就能成功，后面问了AI，是因为Snowflake ID 精度问题，题目是 RCTF2025 期间 ID ≈ `2.3e15`，不会溢出；现在系统时间过了将近一年才暴露出来。
 
 :::
@@ -95,7 +95,7 @@ await browser.close();
 
 ![header.php 中未加引号的 content 属性](image-8.png)
 
-这意味着 `$pageAuthor` 里的空格和 `>` 能直接逃逸出属性，注入新的 HTML 属性甚至新标签，使用 `x><script>alert(1)</script>` 就能打 XSS。
+这意味着 `$pageAuthor` 里的空格和 `>` 能直接逃逸出属性，注入新的 HTML 属性甚至新标签，使用 `"x><script>alert(1)</script>"` 就能打 XSS。
 
 再看 `blog/views/article.php`，`$pageAuthor` 的来源是：
 
@@ -125,7 +125,7 @@ $pageAuthor = htmlspecialchars($article['username']);
 <meta name="author" content='script-src-elem http://blog-app/assets/js/article.js ' http-equiv=content-security-policy>
 ```
 
-:::note[解析细节]
+:::note[解析细节]  
 HTML 解析器在 `content=` 之后遇到 `'`，会进入单引号属性值状态，于是 `content` 的值恰好就是 `script-src-elem http://blog-app/assets/js/article.js `，后面的 `http-equiv=content-security-policy` 被解析成一个独立属性。它在 `<head>` 里、早于 `purify.min.js` / `xss-shield.js`，所以：
 
 :::
@@ -142,7 +142,7 @@ script-src-elem http://blog-app/assets/js/article.js
 - 白名单里只有 `article.js` → `purify.min.js` 与 `xss-shield.js` 被浏览器直接拦截；
 - 防护脚本失效，正文里的事件处理器（`onerror`）就能照常执行。
 
-:::important[为什么不能用内联 `<script>`]
+:::important[为什么不能用内联 `<script>`]  
 内联 `<script>` 元素同样受 `script-src-elem` 约束，会被一起拦掉。所以外带必须靠事件处理器，而不是直接写一段脚本。
 
 :::
@@ -159,7 +159,7 @@ script-src-elem http://blog-app/assets/js/article.js
 
 ![发布后拿到文章 id](image-12.png)
 
-:::tip[为什么是 host.docker.internal 而不是 127.0.0.1]
+:::tip[为什么是 host.docker.internal 而不是 127.0.0.1]  
 机器人跑在 Docker 容器里，**发请求的是容器内的 Chromium，不是本机的浏览器**。容器里的 `127.0.0.1` 指的是容器自己，所以外带地址不能写 `127.0.0.1`，要写 `host.docker.internal`。
 
 其他等价写法：
